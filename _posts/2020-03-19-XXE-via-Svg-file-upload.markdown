@@ -59,3 +59,5 @@ We just got reading access to an internal file. If we submit the value we just r
 Hope reading this helped to understand xxe's in this particular case. <br/>*Thank you for reading!*
 
 
+
+
