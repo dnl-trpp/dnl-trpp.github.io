@@ -2,7 +2,7 @@
 layout: post
 title:  "The Cod Caper Writeup"
 date:   2020-05-05 16:52:46 +0100
-categories: writeup xxe portswigger lab
+categories: writeup tryhackme 
 ---
 # *Introduction*
 I Recently solved my first exploitable machine ever and decided to write about it here. I'm talking of the [TryHackMe's](https://tryhackme.com/) box "[The Cod caper](https://tryhackme.com/room/thecodcaper)". It's a free room, so no need for a subscription. I will skip the configuration phase(Like connecting to the internal VPN), also the actual machine ip is replaced by `$IP`. Let's get started.
