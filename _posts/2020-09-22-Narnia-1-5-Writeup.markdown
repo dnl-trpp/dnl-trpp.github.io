@@ -1,7 +1,7 @@
 ---
 layout: post
 title:  "Narnia 0 - 4 (OverTheWire CTF Writeup)"
-date:   2020-08-14 8:00:00 +0100
+date:   2020-09-22 8:00:00 +0100
 categories: writeup OtW
 ---
 
