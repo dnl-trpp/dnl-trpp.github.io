@@ -28,7 +28,7 @@ twitter_username: heXjection
 github_username:  dnl-trpp
 
 # Build settings
-theme: minima
+theme: jekyll-theme-cayman
 #remote_theme: thelehhman/texture
 plugins:
   - jekyll-feed
