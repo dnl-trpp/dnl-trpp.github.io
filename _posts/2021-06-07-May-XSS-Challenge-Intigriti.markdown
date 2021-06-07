@@ -34,7 +34,9 @@ The content of  the `a` box ,`b` box   and `c`box is joined together, and after 
 
 By passing `b=;` as a parameter, everything in the `input` box controlled by the `c` parameter is executed. That's because `;` after a number terminates the line immediately but it's still valid javascript. 
 The trick here is crafting the javascript strings `"constructor"` and `"find"`. After doing that We can access The `Function` constructor with the following: `[]["find"]["constructor"]`.  Now we can execute  javascript by using[ template literals](https://developer.mozilla.org/en-US/docs/Web/JavaScript/Reference/Template_literals) as a [calling convention](https://wesbos.com/tagged-template-literals) and also to construct the string of arbitrary code that we want to execute. 
-At the end we are calling something that looks like this `` []["find"]["constructor"]`e${"ale"+"rt(document.domain)"}``` ``.  The `e` character before the dollar sign `$` is necessary because for some reason using template literals this way, the string constructed inside it is passed as second argument to the `Function` constructor and whatever comes before (the `e` in this case) is passed as the first argument.
+At the end we are calling something that looks like this ```` []["find"]["constructor"]`e${"ale"+"rt(document.domain)"}``` ```` . 
+
+The `e` character before the dollar sign `$` is necessary because for some reason using template literals this way, the string constructed inside it is passed as second argument to the `Function` constructor and whatever comes before (the `e` in this case) is passed as the first argument.
 
 ### Constructing The Strings
 
