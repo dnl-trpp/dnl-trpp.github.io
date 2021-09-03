@@ -30,7 +30,7 @@ I said:
 Initially, I thought I was missing something in my payload, but as it turns out, I found another explanation to this problem.
 
 ### What are we talking about here?
-The queries above are inspired directly from PortSwigger's (Sql-Injection Cheat Sheet)[https://portswigger.net/web-security/sql-injection/cheat-sheet]. (Conditional Error Sections). Their payload is the following:
+The queries above are inspired directly from PortSwigger's [Sql-Injection Cheat Sheet](https://portswigger.net/web-security/sql-injection/cheat-sheet). (Conditional Error Sections). Their payload is the following:
 ```
 SELECT CASE WHEN (YOUR-CONDITION-HERE) THEN cast(1/0 as text) ELSE NULL END
 ```
