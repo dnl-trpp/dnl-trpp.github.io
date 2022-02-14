@@ -3,7 +3,6 @@ layout: post
 title:  "February Xss Challenge Intigriti Writeup"
 date:   2022-02-09 00:00:01 +0100
 categories: writeup Intigriti
-visible: 0
 ---
 
 ### Introduction
