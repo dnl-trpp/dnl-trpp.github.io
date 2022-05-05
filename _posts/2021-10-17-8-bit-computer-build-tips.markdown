@@ -6,7 +6,7 @@ categories: projects
 ---
 
 ## My build
-Just a couple of weeks ago I finished my personal 8-bit computer build inspired by [ben eater](https://eater.net/8bit/). I had no previous experience with electronics or circuit design and learned a lot during the design and troubleshooting process. My build differs only slightly from ben eater's one. I had to make some minor changes due to different components I used and to fix some problems I was having. In this post I want to list all of the problems I faced with my build. In the meantime here's the final result:
+Just a couple of weeks ago I finished my personal 8-bit computer build inspired by [ben eater](https://eater.net/8bit/). I learned a lot during the design and troubleshooting process. My build differs only slightly from ben eater's one. I had to make some minor changes due to different components I used and to fix some problems I was having. In this post I want to list all of the problems I faced with my build. In the meantime here's the final result:
 
 ![final build](/assets/8bit_finalbuild.jpg)
 
