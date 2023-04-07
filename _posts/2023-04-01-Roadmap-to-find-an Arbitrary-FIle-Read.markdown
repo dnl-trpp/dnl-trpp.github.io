@@ -62,7 +62,7 @@ So next thing I asked myself is... can we include local files? \(*Spoiler: yes w
 
 I was almost giving up when I tried `<iframe src='C:/Windows/System32/drivers/etc/hosts' width=1000 deight=1000></iframe>`. Once encoded and sent, we get a pdf back. 
 
-![Image of hosts](/assets/hosts.png)
+![Image of hosts](/assets/hostsetc.png)
 
 Got you! We can read the content of windows `/etc/hosts` file. As long as we know (Or we guess) the path and the filename, we can read any file! 
 Just for completness, the final request with the URL-Base 64 encoding looks something like this:
