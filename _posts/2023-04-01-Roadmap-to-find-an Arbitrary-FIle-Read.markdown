@@ -3,6 +3,7 @@ layout: post
 title:  "Playing Hide and Seek with PDF Files"
 date:   2023-04-01 00:00:01 +0100
 categories: writeup
+visible: 0
 ---
 
 ### Introduction
