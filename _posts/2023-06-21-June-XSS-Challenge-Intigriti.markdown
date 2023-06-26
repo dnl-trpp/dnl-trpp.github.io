@@ -3,7 +3,7 @@ layout: post
 title:  "Pollute only after Cleaning! (0623 Intigriti Challenge)"
 date:   2023-06-21 15:00:00 +0100
 categories: writeup Intigriti 
-visible: 0
+visible: 1
 ---
 
 ### Introduction
