@@ -52,7 +52,7 @@ The first two are default Apache files and give a 403 error when visited(Permiss
 # *SQL Injection*
 Visting `$IP/administrator.php` gives us this:
 
-![Administrator.php](/assets/CodCaper_Administrator.png)
+![Administrator.php](/assets/CodCaper-administrator.png)
 
 A login form, Nice! Default credentials like `admin` don't take us anywhere, so time to try some injection. I started testing manually. I'm assuming you know about sql injection, but if it's not the case there are plenty of guides out there.  By using `'OR SLEEP(2)#` in the username field, the site takes 2 seconds to respond so Time Based Injection is possible.
 The webpage displays SQL Errors so Error Based injection is also possible. Using `' UNION SELECT NULL, NULL from test# ` gives an error while `' UNION SELECT NULL, NULL from users# ` doesn't. That's how I found out a `users` table exists with fields `username` and `password`. I tried other payloads to get more info about the database but at the end I switched to [sqlmap](https://sqlmap.org/). 
@@ -83,7 +83,7 @@ Awsome!
 # *Get a Shell*
 By logging in with the above credentials we get this interface:
 
->>![Command](/assets/CodCaper_Command.png)
+>>![Command](/assets/CodCaper-command.png)
 
 Can we actually run commands? Let's try...
 
