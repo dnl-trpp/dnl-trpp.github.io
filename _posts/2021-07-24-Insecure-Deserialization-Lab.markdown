@@ -11,11 +11,9 @@ A couple weeks ago I got a notification, informing me of [Michael Stepankin's](h
 
 ### Research
 The lab description says:
->>This lab uses a serialization-based session mechanism. If you can construct a suitable gadget chain, you can exploit this lab's insecure deserialization to obtain the administrator's password.
-
->>To solve the lab, gain access to the source code and use it to construct a gadget chain to obtain the administrator's password. Then, log in as the administrator and delete Carlos's account.
-
->>You can log in to your own account using the following credentials: wiener:peter
+>> This lab uses a serialization-based session mechanism. If you can construct a suitable gadget chain, you can exploit this lab's insecure deserialization to obtain the administrator's password. 
+To solve the lab, gain access to the source code and use it to construct a gadget chain to obtain the administrator's password. Then, log in as the administrator and delete Carlos's account.
+You can log in to your own account using the following credentials: wiener:peter
 
 Let's setup our tools. I launched burp, opened the included browser and set the scope to the lab url. First thing we can do is loggin in with the account that is given to us. After that, any request to our target has a session cookie set:
 
@@ -27,7 +25,7 @@ Inspecting the source with `CTRL+U` or looking at Burp Suite's `Site map`, shows
 
 Turns out directory listing is active on the `/backup` endpoint and it exposes two files: `AccessTokenUser.java` and `ProductTemplate.java`. So probably java is used to generate our session cookie. Let's look at the files:
 
-{% highlight java %}
+```java
 //AccessTokenUser.java
 package data.session.token;
 
@@ -53,9 +51,9 @@ public class AccessTokenUser implements Serializable
     {
         return accessToken;
   
-{% endhighlight %}
+```
 
-{% highlight java %}
+```java
 //ProductTemplate.java
 package data.productcatalog;
 
@@ -122,7 +120,7 @@ public class ProductTemplate implements Serializable
         return product;
     }
 }
-{% endhighlight %}
+```
 
 So the first one is a simple `Serializable` class with just two variables: `username` and `accessToken` . The second class has some logic in it. The readObject method is executed when an instance of the `ProductTemplate` class is deserialized. Overwriting this method gives the programmer the ability to control the deserialization process (and an attacker the ability to exploit this process!). There is some code and at the end the private variable `id` is used in an `SQL` query. Is this our entry point?
 

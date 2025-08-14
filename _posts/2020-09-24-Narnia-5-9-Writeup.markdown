@@ -10,7 +10,7 @@ This is the second part Of OverTheWire's Narnia CTF Writeup covering all the fin
 # *Narnia5*
 Let's start off by taking a look to the source code:
 
-{% highlight c %}
+```c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -34,7 +34,7 @@ int main(int argc, char **argv){
         printf ("i = %d (%p)\n", i, &i);
         return 0;
 }
-{% endhighlight %}
+```
 So here the argument passed to the program is copyed in a 64 bytes long buffer but this time the size is checked. What this means is no Buffer Overflow this time, however this program i subject to another known vulnerability: [format strings](https://en.wikipedia.org/wiki/Uncontrolled_format_string). Because of the incorrect use of the `snprintf` function (which btw is like printf but prints to a buffer intead of stdout) our input is formated accoring to the `convertion specifiers`. Let's see what this looks like.
 ```
 narnia5@narnia:/narnia$ ./narnia5 AAA
@@ -108,7 +108,7 @@ We do a quick test to check `i`'s address and then we attack! Nice.
 
 # *Narnia6*
 Source time!
-{% highlight c %}
+```c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -146,7 +146,7 @@ int main(int argc, char *argv[]){
 
         exit(1);
 }
-{% endhighlight %}
+```
 
 Here we have 2 buffers of 8 bytes each and beacuse of the insecure strcpy we can overflow both of them. Overwriting the `*fp` function pointer leads to arbitrary code execution but we can't execute code on the stack due to the fancy checks and the `get_sp` assembly function. When the fp function is called, the content of buffer `b1` is passed to it. Let's do some gdb magic.
 ```
@@ -204,7 +204,7 @@ Here we first overwrite the function pointer using the second buffer in memory (
 
 # *Narnia 7*
 Here's the source:
-{% highlight c %}
+```c
 #include <stdio.h>                                                                                                                                                                     
 #include <stdlib.h>                                                                                                                                                                    
 #include <string.h>                                                                                                                                                                    
@@ -257,7 +257,7 @@ int hackedfunction(){
 
         return 0;
 }
-{% endhighlight %}
+```
 
 It's a longer code than the previous ones, but we have a hint here. The vulnerable function is called `vuln`, so it's pretty obvious we have to investigate it. Essentially we have another format string vulnerability (see Narnia5) but this time we have to redirect the execution by overwriting a function pointer. We want to put the address of `hackedfunction` in the `ptrf` variable. When the function will be called we get a shell. So how can we do this?
 ```
@@ -321,7 +321,7 @@ The address of `hackedfunction` (0x8048724) is equal to 134514468 in decimal. We
 
 # *Narnia8*
 SOOOURCE PLEASE
-{% highlight c %}
+```c
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -352,7 +352,7 @@ int main(int argc, char **argv){
 
         return 0;
 }
-{% endhighlight %}
+```
 Ooook, I struggled a lot with this one. I will try to show you how I debugged this and what I tried. At first it seemd to me like a Classic buffer overflow. Our input will be entirely copied into `bok` buffer so I instantly tried injecting some shellcode and overwrite the return address. Obviously it didn't work. Let's start gdb to see what's going on.
 ```
 (gdb) disas func                                                                                                                                                                       

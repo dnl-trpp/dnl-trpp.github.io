@@ -11,21 +11,21 @@ I was testing a website when i found an `export PDF` functionality. Recently I l
 ### The Export Pdf functionality
 While I was exploring the target to find out some hidden functionalities, I found an export function. The site contained some formatted `HTML` data and it allowed to export it in multiple formats, one of wich was PDF. At first I was trying to leverage this function to access some data without authorization, but I quickly realized something different was going on.
 Initially I thought that everything was generated server side but looking at burpsuite's proxy, only one request was made when clicking `Export as PDF`. This request looked something like this (simplified for clarity):
-{% highlight http %}
+```http
 POST /api/exportPDF.aspx HTTP/1.1
 Host: redacted.com
 Content-Length: 342
 
-elementToExport=JTNDJTIxRE9DVFlQRSUyMGh0bWwlM0UlMEElM0NodG1sJTNFJTBBJTNDaGVhZCUzRSUwQSUzQ3RpdGxlJTNFUGFnZSUyMFRpdGxlJTNDJTJGdGl0bGUlM0UlMEElM0MlMkZoZWFkJTNFJTBBJTNDYm9keSUzRSUwQSUwQSUzQ2gxJTNFTXklMjBGaXJzdCUyMEhlYWRpbmclM0MlMkZoMSUzRSUwQSUzQ3AlM0VNeSUyMGZpcnN0JTIwcGFyYWdyYXBoLiUzQyUyRnAlM0UlMEElMEElM0MlMkZib2R5JTNFJTBBJTNDJTJGaHRtbCUzRQo%3D
-{% endhighlight%}
+elementToExport=JTNEJTIxRE9DVFlQRSUyMGh0bWwlM0UlMEElM0NodG1sJTNFJTBBJTNDaGVhZCUzRSUwQSUzQ3RpdGxlJTNFUGFnZSUyMFRpdGxlJTNDJTJGdGl0bGUlM0UlMEElM0MlMkZoZWFkJTNFJTBBJTNDYm9keSUzRSUwQSUwQSUzQ2gxJTNFTXklMjBGaXJzdCUyMEhlYWRpbmclM0MlMkZoMSUzRSUwQSUzQ3AlM0VNeSUyMGZpcnN0JTIwcGFyYWdyYXBoLiUzQyUyRnAlM0UlMEElMEElM0MlMkZib2R5JTNFJTBBJTNDJTJGaHRtbCUzRQo%3D
+```
 One main diffence with what I actually found is that the content of the variable `elementToExport` was a lot longher than that. At this point I switched my mindset and was trying to understand how the pdf was generated to possibly find a `HTML injection`.Because the request and the data passed to it was generated client side, instead of using a blackbox approach I jumped into the javascript. After placing some breakpoints here and there, I simply did a `search on all files` looking for the word `PDF`. There was a lot going on in the code, but I manage to find what I was looking for and it looked something like this:
-{% highlight js %}
+```js
 var elementToExportValue = $divElementToExport.html();
 var encodedElementToExport = encodeURIComponent(elementToExportValue);
 var blob = btoa(encodedElementToExport);
 
 doPostRequest("/api/exportPDF",blob);
-{% endhighlight%}
+```
 
 The code extracts the raw html content of the `element to export div`, URL encodes and base64 encodes everything. Then it performs a `POST` request, passing everything in the `elementToExport` parameters as seen before. 
 
@@ -67,13 +67,13 @@ I was almost giving up when I tried `<iframe src='C:/Windows/System32/drivers/et
 Got you! We can read the content of windows `/etc/hosts` file. As long as we know (Or we guess) the path and the filename, we can read any file! 
 Just for completness, the final request with the URL-Base 64 encoding looks something like this:
 
-{% highlight http %}
+```http
 POST /api/exportPDF.aspx HTTP/1.1
 Host: redacted.com
 Content-Length: 182
 
-elementToExport=JTNDaWZyYW1lJTIwc3JjJTNEJTI3QyUzQSUyRldpbmRvd3MlMkZTeXN0ZW0zMiUyRmRyaXZlcnMlMkZldGMlMkZob3N0cyUyNyUyMHdpZHRoJTNEMTAwMCUyMGRlaWdodCUzRDEwMDAlM0UlM0MlMkZpZnJhbWUlM0U%3D
-{% endhighlight %}
+elementToExport=JTNEaWZyYW1lJTIwc3JjJTNEJTI3QyUzQSUyRldpbmRvd3MlMkZTeXN0ZW0zMiUyRmRyaXZlcnMlMkZldGMlMkZob3N0cyUyNyUyMHdpZHRoJTNEMTAwMCUyMGRlaWdodCUzRDEwMDAlM0UlM0MlMkZpZnJhbWUlM0U%3D
+```
 
 At this point I could stop and report the vulnerability, but I was courious, how could something like this happen?
 
@@ -90,7 +90,7 @@ So at this point I was getting really hyped, what if I found some vulnerability 
 It's been a while since I last programmed in `C#` and I never used `.NET` but I figured out this was worth a try.
 So armed with documentation, I spin up a basic `.NET` console application and copy-paste the code of `SelectPDF` documentation.
 Now i Just had to insert my payload.
-{% highlight c# %}
+```c#
 using SelectPdf;
 // instantiate a html to pdf converter object
 HtmlToPdf converter = new HtmlToPdf();
@@ -106,7 +106,7 @@ doc.Save( "Sample.pdf");
 
 // close pdf document
 doc.Close();
-{% endhighlight %}
+```
 
 Executing with `dotnet run` generates a PDF file named `Sample.pdf` ... and it contains the content of `/etc/hosts/` ! 
 So just using the code form the documentation as is could be a problem, Did I find something worth reporting? Sadly, no. The reason is found again in the documentation of the library.

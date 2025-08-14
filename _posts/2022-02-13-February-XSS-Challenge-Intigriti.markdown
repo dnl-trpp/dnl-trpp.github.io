@@ -8,7 +8,7 @@ categories: writeup Intigriti
 ### Introduction
 
 The [challenge site](https://challenge-0222.intigriti.io/challenge/xss.html) offers a nice interface which allows you to enter a username and answer to the following question: `Have you ever played this game?`. On submitting the same page is requested again with two parameters in the request: `q` and `first`. The first one contains the username and the second contains the string `yes` or `no` depending on our selection. The details of how this is handled is containined in one single script and can be found by simply inspecting the page source:
-{% highlight js %}
+```js
 window.name = 'XSS(eXtreme Short Scripting) Game'
 function showModal(title, content) {
   var titleDOM = document.querySelector('#main-modal h3')
@@ -42,7 +42,7 @@ if (location.href.includes('q=')) {
     showModal('Welcome back!', qs)
   }
 }
-{% endhighlight%}
+```
 
 ### The Challenge ###
 
