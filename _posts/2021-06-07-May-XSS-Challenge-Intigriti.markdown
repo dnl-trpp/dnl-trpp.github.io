@@ -47,7 +47,7 @@ We already now we can't use strings directly because we basically have no direct
 	*  [e+[]][0]  //Gives `"[object HTMLProgressElement]"`
 	*  [[][[e.e+[]][0][4]+[e.e+[]][0][5]+[e.e+[]][0][6]+[e.e+[]][0][8]]+[]]  //Gives `"function find() { [native code] }"`
 	
-This works because `e` is used in [scientific notation](http://www.java2s.com/Tutorials/Javascript/Javascript_Tutorial/Data_Type/How_to_write_Scientific_notation_literal_in_Javascript.htm) as an exponential but it's also an `object` in the document( The `ProgressBar` has id=e ). For example to generate `undefined`  an unexisting propriety of `e` is accessed by doing `e.e`, after that it's converted to string using the plus sign (`e.e+[]`). To keep individual characters separated, this is enclosed in square brackets (`[e.e+[]]`), creating an array of one string. The first and only element of this array is the string `"undefined"`so we access it with `[e.e+[]][0]`. The other strings are generated using similar tricks.
+This works because `e` is used in [scientific notation](https://www.java2s.com/Tutorials/Javascript/Javascript_Tutorial/Data_Type/How_to_write_Scientific_notation_literal_in_Javascript.htm) as an exponential but it's also an `object` in the document( The `ProgressBar` has id=e ). For example to generate `undefined`  an unexisting propriety of `e` is accessed by doing `e.e`, after that it's converted to string using the plus sign (`e.e+[]`). To keep individual characters separated, this is enclosed in square brackets (`[e.e+[]]`), creating an array of one string. The first and only element of this array is the string `"undefined"`so we access it with `[e.e+[]][0]`. The other strings are generated using similar tricks.
 
 ### The final exploit
 

