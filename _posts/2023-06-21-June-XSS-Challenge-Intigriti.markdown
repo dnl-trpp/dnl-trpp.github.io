@@ -5,7 +5,7 @@ date:   2023-06-21 15:00:00 +0100
 categories: writeup Intigriti
 description: Writeup, solution, and pitfalls of an Intigriti XSS challenge involving a prototype pollution vulnerability.
 image:
-  path: /assets/img/dnl-polluting.png
+  path: /assets/img/dnl-polluting.jpg
   alt: Please, always throw your garbage in the bin.
 ---
 
