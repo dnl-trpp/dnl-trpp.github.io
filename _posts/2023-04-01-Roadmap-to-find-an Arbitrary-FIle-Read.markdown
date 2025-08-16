@@ -3,7 +3,7 @@ layout: post
 title:  "Playing Hide and Seek with PDF Files"
 date:   2023-04-01 00:00:01 +0100
 categories: writeup
-description: How a simple PDF export feature and developers not reading security recommendations allowed reading arbitrary server files
+description: How a simple PDF export feature and ignored security recommendations allowed reading arbitrary server files
 image:
   path: /assets/img/dnl-seek.jpg
   alt: No PDF files where harmed during the exploitation of this vulnerability
