@@ -3,6 +3,10 @@ layout: post
 title:  "Pollute only after Cleaning! (0623 Intigriti Challenge)"
 date:   2023-06-21 15:00:00 +0100
 categories: writeup Intigriti
+description: Writeup, solution, and pitfalls of an Intigriti XSS challenge involving a prototype pollution vulnerability.
+image:
+  path: /assets/img/dnl-polluting.png
+  alt: Please, always throw your garbage in the bin.
 ---
 
 ### Introduction

@@ -38,11 +38,11 @@ social:
   email: daniel.trippa@gmail.com # change to your email address
   links:
     # The first element serves as the copyright owner's link
+    - https://www.linkedin.com/in/danieltrippa
     - https://twitter.com/jmp2esp # change to your Twitter homepage
     - https://github.com/dnl-trpp # change to your GitHub homepage
     # Uncomment below to add more social links
     # - https://www.facebook.com/username
-    - https://www.linkedin.com/in/danieltrippa
 
 # Site Verification Settings
 webmaster_verifications:
