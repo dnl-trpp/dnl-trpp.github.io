@@ -9,7 +9,7 @@ image:
   alt: Please, always throw your garbage in the bin.
 ---
 
-### Introduction
+## Introduction
 
 As soon as my phone got the notification, I knew I would have to cancel my plans for the next two days. I I thought this as a joke, but i ended up spending waaay to much time on this. After going through multiple rabbit🐇 holes, I spend around 20 hours total to finally come up with a solution.
 
@@ -17,7 +17,7 @@ As usual, I would like to go through my steps again and not only disclosing the 
 
 (At the end of this article you will find a TL;DR; and the final payload)
 
-### The Challenge
+## The Challenge
 At the time of writing, the challenge page is aviliable [here](https://challenge-0623.intigriti.io/challenge/index.html). The page welcomes us with a textfield and a button. Once pressed, the input is reflected on the screen. So what about the standard payload `<script>alert(document.domain)</script>`? Obviously this doesn't work, but why? 
 
 ![hey](../assets/hey0623.png){: .right }
@@ -75,7 +75,7 @@ window.params = $.deparam(location.search.slice(1))
     }
     ```
 
-### Polluting the Planet
+## Polluting the Planet
 
 So what can we do now? Probably the challenge isn't asking us to find a zero day in the Sanitizer library, so let's try to approach this differently. Just because this is a challenge, the way recaptcha is implemented is strange, and probably requires us to find a bypass to activate it (When loaded on the domain, `window.recaptcha` is set to `false`). After some messing around with other stuff, I found that the `deparam` lib is vulnerable to a very known `Prototype pollution`. At this point, the first hint by `intigriti` was published, and it also clearly hinted that this was the right way.
 
@@ -101,7 +101,7 @@ I came up with the following payload : `?name[test]=test&__proto__[toString]=fun
 Unfortunately, this doesn't fire. The reason is that we are not reassigning the alert function to `toString`, we are literally reassinging the string `"function(){alert(1)}"`. At the end, there was no way to bypass this. It seems that our prototype pollution only allows us to set a proprety to a string, an object or an array. I also confirmed this by looking through the `deparam` source code.
 After hours spent on this, I decided to move on.
 
-### The reCaptcha gadget
+## The reCaptcha gadget
 As you might now, a prototype pollution vulnerability is not useful if we don't have a gadget. In this case a `gadget` means some piece of code that, once we pollute Object.prototype, behaves diffrently. Previously I was trying to use the `name` variable as a gadget, but was unsuccessful. 
 At some point, I found out that google reCaptcha is a known gadget for prototype pollution! 
 PoC can be found [here](https://github.com/BlackFan/client-side-prototype-pollution/blob/master/gadgets/recaptcha.md). 
@@ -112,7 +112,7 @@ This works but we have to fulfill two conditions:
 The second point has to do with the inner workings of google's reCaptcha library. I observed by reproducing locally that the `XSS` doesn't fire if both conditions aren't met.
 Let's focus on the first point first!
 
-### Cleaning before polluting!
+## Cleaning before polluting!
 It is very clear that somehow we have to bypass the `if(window.captcha)` check. The only way seems to have document.domain set to `localhost`. After some researching, I concluded that the document.domain variable has some severe security config. For instance, it can never be set to a random value, but only on a parent domain.
 Let's take a step back, what if we directly pollute the recaptcha variable. We set it to a string, and a string will be evaluated to true right? Wrong. The thing is, an object (`window` in this case) get's a propriety from `Object.prototype` only if it's not defined lower in it's inheritance chain (don't know if it's called so). In other words, to pollute window.recaptcha, we have to make sure that it's not locally defined in the code. 
 To do so, it is enough to have `document.domain` set to literally anything diffrent that `challenge-0623.intigriti.io`. I spent a lot of time researching. at the end I came up with a little trick I read some time ago. Ready?
@@ -149,11 +149,11 @@ _Experimenting with different instantiations of the Sanitizer Object in the Deve
 
 I though this was it, configurate the Sanitizer to allow custom tags and let's go. Sadly, this was not the way. For some reason I wasn't able to allow custom elements, nor tags or anything. Even when I tried to reproduce locally with normal javscript code.
 After enough hours lost on this, I move on.
-### Pollute the world!
+## Pollute the world!
 
 So really, only an HTML element with a custom attribute is missing right? I will jump to the conclusion, as I'm tired of writing, but at the end we don't need an HTML element. The `sitekey` variable just needs to be defined. As it's starts as `undefined` I guess, we can pollute it. So passing `__proto__[sitekey]=something` will be enough to fire to execute the reCaptcha API correctly, and Fire the XSS!
 
-### Final payload
+## Final payload
 As a quick recap. Or TL;DR;
 * We clean `window.recaptcha` by using a dot at the end of the domain
 * We pollute `window.recaptcha` using a prototype pollution vulnerability in the `deparam` function
@@ -171,7 +171,7 @@ You can visit the link above by clicking [here](https://challenge-0623.intigriti
 ![fired](../assets/fired0623.png){: width="600" height="400" }
 _POPUP!_
 
-### Conlusion
+## Conlusion
 As with any challenge, I learned a lot. And I probably learned even more by trying and going thorugh some rabbit holes, exploring what made me uncomfortable and what I initially discarded.
 
 Some takeaways:

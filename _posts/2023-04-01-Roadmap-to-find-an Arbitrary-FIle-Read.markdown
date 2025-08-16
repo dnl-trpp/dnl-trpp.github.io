@@ -9,10 +9,10 @@ image:
   alt: No PDF files where harmed during the exploitation of this vulnerability
 ---
 
-### Introduction
+## Introduction
 I was testing a website when i found an `export PDF` functionality. Recently I learned about [PDF export injection](https://inonst.medium.com/export-injection-2eebc4f17117) vulnerability, so this was perfect to test something new! Instead of directly explaining the vulnerability I found, I like to go through the steps that lead me to it's discovery. Because I'm not allowed to disclose the name of the website, I will name our target `redacted.com`. Also some endpoints will be made up, but nothing will change conceptually! So let's get started.
 
-### The Export Pdf functionality
+## The Export Pdf functionality
 While I was exploring the target to find out some hidden functionalities, I found an export function. The site contained some formatted `HTML` data and it allowed to export it in multiple formats, one of wich was PDF. At first I was trying to leverage this function to access some data without authorization, but I quickly realized something different was going on.
 Initially I thought that everything was generated server side but looking at burpsuite's proxy, only one request was made when clicking `Export as PDF`. This request looked something like this (simplified for clarity):
 ```http
@@ -33,7 +33,7 @@ doPostRequest("/api/exportPDF",blob);
 
 The code extracts the raw html content of the `element to export div`, URL encodes and base64 encodes everything. Then it performs a `POST` request, passing everything in the `elementToExport` parameters as seen before. 
 
-# Looking for a vulnerability
+## Looking for a vulnerability
 Because we can directly control the content of `elementToExport`, if we correctly encode everything, we can pass any `HTML` code we want and it will be converted in a PDF. An unintended `HTML to PDF` function is nice to have, but it's not a vulnerability itself. There must be something more!
 
 By the way, `burpsuite` kindly handles the encoding for us. It actually recognises the triple encoding and allows us to encode back once we change the payload.
@@ -58,7 +58,7 @@ Nice! I got a request back. Now you see just a request from `127.0.0.1` because 
 
 > Note: I was able to use my local ip address to test the above, because I knew that the target server was on my same network, otherwise I would have to expose my `SimpleHTTPServer` to the internet.
 
-# The Payload
+## The Payload
 
 So next thing I asked myself is... can we include local files? \(*Spoiler: yes we can*\) <br> To test this we can try an html like this `<iframe src='path_to_read' width=1000 deight=1000></iframe>` where `path_to_read` corresponds to some file path that we want to access. I found that the backend server was running windows so I tried some known windows paths. At first, when sending this payload, I was getting an iframe in the exported PDF, but with no content. Where are all the files hiding? 
 > Note: At This point I also found out that the endpoint also accepted parameters in a GET request. This was very useful, because I could directly navigate to the page and get the `PDF` downloaded, instead of manually sending the request with `burp repeater and then extracting the PDF from the response
@@ -81,7 +81,7 @@ elementToExport=JTNEaWZyYW1lJTIwc3JjJTNEJTI3QyUzQSUyRldpbmRvd3MlMkZTeXN0ZW0zMiUy
 
 At this point I could stop and report the vulnerability, but I was courious, how could something like this happen?
 
-# Some further research
+## Some further research
 
 I knew that this kind of vulnerability usually result from an incorrect use of a backend library that converts whatever format (`HTML` in this case) in `PDF`. I wanted to go deeper so I tried to look into the metadata of the exported PDF file. `xdd` or `hexdump` work, but a tool like `pdfinfo` does exactly our job here:
 
@@ -118,7 +118,7 @@ So just using the code form the documentation as is could be a problem, Did I fi
 In the security reccomandation, we can not only find exactly this problem, but also a quick fix:
 ![fix](/assets/fixquick.png)
 
-# Lessons learned
+## Lessons learned
 
 * Always test what you learn in the wild!
 * Don't quit when you are tired, quit when you're done :\)
